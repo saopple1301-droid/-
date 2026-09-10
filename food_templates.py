@@ -15,6 +15,18 @@ FOOD_TEMPLATES = {
         "pieces_per_pack": 5,
         "pack_weight_g": 135,
     },
+    "hamburger_nichirei_mini": {
+        "display_name": "ニチレイ ミニハンバーグ",
+        "diameter_cm": None,
+        "weight_g_per_piece": 20,
+        "pieces_per_pack": 6,
+        "pack_weight_g": 120,
+        # パッケージ記載の目安加熱時間(参考値。個数ごとにレンジ推奨時間が異なる)
+        "package_heating_time_s": {
+            "500W": {1: 30, 2: 50, 4: 80},
+            "600W": {1: 30, 2: 40, 4: 70},
+        },
+    },
 }
 
 
