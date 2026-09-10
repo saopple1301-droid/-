@@ -10,5 +10,17 @@
     "r2": 0.7777862558382325,
     "heating_rate_c_per_s": 1.2668066491688539,
     "heating_rate_r2": 0.7253245166984275
+  },
+  "hamburger_nichirei_mini": {
+    "features": [
+      "surface_temp_mean"
+    ],
+    "intercept": 10.783143186301885,
+    "coeffs": [
+      1.0325026329191536
+    ],
+    "r2": 0.858215557213575,
+    "heating_rate_c_per_s": 1.237142857142857,
+    "heating_rate_r2": 0.7750604410367098
   }
 }
