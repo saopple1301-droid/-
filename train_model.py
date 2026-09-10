@@ -6,8 +6,12 @@
 動くようにしている。行列演算はガウスの消去法で正規方程式
 (X^T X) beta = X^T y を解く方式。
 
+既定では food_category が "beef_croquette_tablemark"(冷凍コロッケ)の行だけを使う。
+ハンバーグなど他カテゴリも含めたい場合は --categories all を指定する。
+
 使い方:
     python3 train_model.py
+    python3 train_model.py --categories all
     python3 train_model.py --csv data/measured_data_trial1.csv --features watt elapsed_time_s ambient_temp initial_temp surface_temp_mean
 """
 
@@ -23,6 +27,7 @@ DEFAULT_FEATURES = [
     "initial_temp",
     "surface_temp_mean",
 ]
+DEFAULT_CATEGORIES = ["beef_croquette_tablemark"]
 TARGET = "center_temp"
 CATEGORY_COL = "food_category"
 
@@ -38,12 +43,15 @@ def to_float(value):
     return float(value)
 
 
-def build_dataset(rows, features):
-    """カテゴリごとに (X, y) を組み立てる。欠損値がある行はスキップする。"""
+def build_dataset(rows, features, categories=None):
+    """カテゴリごとに (X, y) を組み立てる。欠損値がある行、対象外カテゴリの行はスキップする。"""
     by_category = defaultdict(lambda: {"X": [], "y": []})
     skipped = 0
     for row in rows:
         category = row[CATEGORY_COL]
+        if categories is not None and category not in categories:
+            skipped += 1
+            continue
         target = to_float(row[TARGET])
         feature_values = [to_float(row[f]) for f in features]
         if target is None or any(v is None for v in feature_values):
@@ -163,14 +171,22 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", default="data/measured_data_trial1.csv")
     parser.add_argument("--features", nargs="+", default=DEFAULT_FEATURES)
+    parser.add_argument(
+        "--categories",
+        nargs="+",
+        default=DEFAULT_CATEGORIES,
+        help="学習対象のfood_category(既定: 冷凍コロッケのみ)。全カテゴリを使う場合は --categories all を指定",
+    )
     parser.add_argument("--out-header", default="model_coefficients_sample.h")
     parser.add_argument("--out-json", default="model_coefficients.json")
     args = parser.parse_args()
 
+    categories = None if args.categories == ["all"] else args.categories
     rows = load_rows(args.csv)
-    by_category, skipped = build_dataset(rows, args.features)
+    by_category, skipped = build_dataset(rows, args.features, categories)
 
-    print(f"読み込んだ行数: {len(rows)} / 欠損値によりスキップした行数: {skipped}")
+    print(f"読み込んだ行数: {len(rows)} / 欠損値・対象外カテゴリでスキップした行数: {skipped}")
+    print(f"対象カテゴリ: {'全カテゴリ' if categories is None else categories}")
     print(f"使用する特徴量: {args.features}")
     print()
 

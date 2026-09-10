@@ -15,13 +15,6 @@ FOOD_TEMPLATES = {
         "pieces_per_pack": 5,
         "pack_weight_g": 135,
     },
-    "hamburger": {
-        "display_name": "ハンバーグ",
-        "diameter_cm": None,
-        "weight_g_per_piece": None,
-        "pieces_per_pack": None,
-        "pack_weight_g": None,
-    },
 }
 
 
