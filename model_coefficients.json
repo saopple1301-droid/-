@@ -1,0 +1,38 @@
+{
+  "beef_croquette_tablemark": {
+    "features": [
+      "watt",
+      "elapsed_time_s",
+      "ambient_temp",
+      "initial_temp",
+      "surface_temp_mean"
+    ],
+    "intercept": -395.0,
+    "coeffs": [
+      0.0413366156072755,
+      0.6481677306903593,
+      14.984375,
+      -2.6848963160966903,
+      0.5437252497915844
+    ],
+    "r2": 0.8144234948450626
+  },
+  "hamburger": {
+    "features": [
+      "watt",
+      "elapsed_time_s",
+      "ambient_temp",
+      "initial_temp",
+      "surface_temp_mean"
+    ],
+    "intercept": -16.43146005774515,
+    "coeffs": [
+      0.04524559501139304,
+      1.2671508016498987,
+      -0.07506328516889749,
+      -2.5504083501938766,
+      -0.06338001363163007
+    ],
+    "r2": 0.7894569050064267
+  }
+}

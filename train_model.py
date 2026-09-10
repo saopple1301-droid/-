@@ -13,6 +13,7 @@
 
 import argparse
 import csv
+import json
 from collections import defaultdict
 
 DEFAULT_FEATURES = [
@@ -145,11 +146,25 @@ def format_cpp_header(models, features):
     return "\n".join(lines)
 
 
+def format_json(models, features):
+    """predict.py が読み込む形式で係数を書き出す。"""
+    return {
+        category: {
+            "features": features,
+            "intercept": beta[0],
+            "coeffs": beta[1:],
+            "r2": r2,
+        }
+        for category, (beta, r2) in models.items()
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", default="data/measured_data_trial1.csv")
     parser.add_argument("--features", nargs="+", default=DEFAULT_FEATURES)
     parser.add_argument("--out-header", default="model_coefficients_sample.h")
+    parser.add_argument("--out-json", default="model_coefficients.json")
     args = parser.parse_args()
 
     rows = load_rows(args.csv)
@@ -179,6 +194,11 @@ def main():
         with open(args.out_header, "w", encoding="utf-8") as f:
             f.write(header)
         print(f"C++ヘッダを書き出しました: {args.out_header}")
+
+        with open(args.out_json, "w", encoding="utf-8") as f:
+            json.dump(format_json(models, args.features), f, ensure_ascii=False, indent=2)
+        print(f"予測用の係数ファイルを書き出しました: {args.out_json}")
+        print(f"→ predict.py --category <カテゴリ名> --value 特徴量名=値 ... で予測できます")
 
 
 if __name__ == "__main__":

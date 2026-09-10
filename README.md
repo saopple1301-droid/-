@@ -32,6 +32,27 @@ python3 train_model.py --features surface_temp_mean
 これで引き継ぎ書記載の `center_temp = 18.98 + 0.971 × surface_temp_mean`(R²=0.778)と
 同じ結果になることを確認済みです。
 
+## 実際に中心温度を予測する(predict.py)
+
+`train_model.py` は「係数を求める」だけで、それ単体では中心温度は計算できません。
+求めた係数を使って実際に予測するには `predict.py` を使います。
+
+```bash
+# 1. 学習(係数を計算し、model_coefficients.json を書き出す)
+python3 train_model.py
+
+# 2. 予測(新しく測った値を入れると中心温度が返る)
+python3 predict.py --category beef_croquette_tablemark \
+    --value watt=500 --value elapsed_time_s=60 --value ambient_temp=23.4 \
+    --value initial_temp=-13.0 --value surface_temp_mean=80.0
+# => 推定中心温度: 93.6 ℃  (このモデルの学習時R^2=0.8144)
+```
+
+`--value` は `train_model.py` で使った特徴量と同じ名前を全て指定する必要があります
+(過不足があるとエラーで教えてくれます)。ファームウェア側で直接計算したい場合は、
+`model_coefficients_sample.h` の係数を同じ式(切片 + Σ係数×特徴量)に当てはめれば
+C++でも同じ結果になります。
+
 ## 直径5cm(コロッケ)の扱いについて
 
 「コロッケの直径は約5cm」という情報は `food_templates.py` の `FOOD_TEMPLATES` に
