@@ -6,13 +6,17 @@
 動くようにしている。行列演算はガウスの消去法で正規方程式
 (X^T X) beta = X^T y を解く方式。
 
-既定では food_category が "beef_croquette_tablemark"(冷凍コロッケ)の行だけを使う。
+既定では food_category が "beef_croquette_tablemark"(冷凍コロッケ)の行だけを使い、
+特徴量は surface_temp_mean(表面温度)のみを使う。データが16件しかなく、
+特徴量を増やすほど過学習(たまたま今回のデータに合っただけの式になる)の
+リスクが高まるため、シンプルな単回帰を既定にしている。
+ワット数・経過時間・室温・初期温度も含めたい場合は --features で明示的に指定する。
 ハンバーグなど他カテゴリも含めたい場合は --categories all を指定する。
 
 使い方:
     python3 train_model.py
     python3 train_model.py --categories all
-    python3 train_model.py --csv data/measured_data_trial1.csv --features watt elapsed_time_s ambient_temp initial_temp surface_temp_mean
+    python3 train_model.py --features watt elapsed_time_s ambient_temp initial_temp surface_temp_mean
 """
 
 import argparse
@@ -20,13 +24,7 @@ import csv
 import json
 from collections import defaultdict
 
-DEFAULT_FEATURES = [
-    "watt",
-    "elapsed_time_s",
-    "ambient_temp",
-    "initial_temp",
-    "surface_temp_mean",
-]
+DEFAULT_FEATURES = ["surface_temp_mean"]
 DEFAULT_CATEGORIES = ["beef_croquette_tablemark"]
 TARGET = "center_temp"
 CATEGORY_COL = "food_category"

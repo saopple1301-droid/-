@@ -1,20 +1,12 @@
 {
   "beef_croquette_tablemark": {
     "features": [
-      "watt",
-      "elapsed_time_s",
-      "ambient_temp",
-      "initial_temp",
       "surface_temp_mean"
     ],
-    "intercept": -395.0,
+    "intercept": 18.98033276519911,
     "coeffs": [
-      0.0413366156072755,
-      0.6481677306903593,
-      14.984375,
-      -2.6848963160966903,
-      0.5437252497915844
+      0.9714684882661611
     ],
-    "r2": 0.8144234948450626
+    "r2": 0.7777862558382325
   }
 }

@@ -8,11 +8,14 @@ numpyやscikit-learnのインストールは不要です(データ数が数十�
 
 やっていることは中学〜高校レベルの数学で説明できます。
 
-- 「中心温度 = a×加熱ワット数 + b×経過秒数 + c×室温 + d×初期温度 + e×表面温度平均 + 切片」
-  という式の a, b, c, d, e と切片を、実測データに一番よく当てはまるように求める(最小二乗法)。
+- 「中心温度 = a×表面温度 + 切片」という直線の式の a と切片を、実測データに
+  一番よく当てはまるように求める(最小二乗法)。中学校で習う y = ax + b と同じ考え方。
 - 現在は**冷凍コロッケ(`beef_croquette_tablemark`)のデータだけ**を使ってモデルを作る(既定動作)。
   CSVにはハンバーグのデータも含まれているが、今回はスコープ外として除外している。
   ハンバーグも含めたい場合は `python3 train_model.py --categories all` を指定する。
+- 特徴量(モデルへの入力)は既定で**表面温度のみ**。ワット数・経過時間・室温・
+  初期温度も使えば精度はわずかに上がる(R²=0.778→0.814)が、データが16件しかなく
+  特徴量を増やすほど過学習のリスクが高まるため、シンプルな単回帰を既定にしている。
 
 ## 使い方
 
@@ -25,14 +28,14 @@ python3 train_model.py
 自動生成します。ファームウェア(`center_temp_sensor.ino`)側はこのヘッダの係数を
 読んで中心温度を計算する想定です。
 
-特徴量を絞り込みたい場合(例: 引き継ぎ書にある表面温度のみのモデルを再現):
+既定の実行結果は引き継ぎ書記載の `center_temp = 18.98 + 0.971 × surface_temp_mean`
+(R²=0.778)と同じ結果になることを確認済みです。
+
+ワット数・経過時間・室温・初期温度も含めた5特徴量版を試したい場合:
 
 ```bash
-python3 train_model.py --features surface_temp_mean
+python3 train_model.py --features watt elapsed_time_s ambient_temp initial_temp surface_temp_mean
 ```
-
-これで引き継ぎ書記載の `center_temp = 18.98 + 0.971 × surface_temp_mean`(R²=0.778)と
-同じ結果になることを確認済みです。
 
 ## 実際に中心温度を予測する(predict.py)
 
@@ -44,10 +47,8 @@ python3 train_model.py --features surface_temp_mean
 python3 train_model.py
 
 # 2. 予測(新しく測った値を入れると中心温度が返る)
-python3 predict.py --category beef_croquette_tablemark \
-    --value watt=500 --value elapsed_time_s=60 --value ambient_temp=23.4 \
-    --value initial_temp=-13.0 --value surface_temp_mean=80.0
-# => 推定中心温度: 93.6 ℃  (このモデルの学習時R^2=0.8144)
+python3 predict.py --category beef_croquette_tablemark --value surface_temp_mean=48.2
+# => 推定中心温度: 65.8 ℃  (このモデルの学習時R^2=0.7778)
 ```
 
 `--value` は `train_model.py` で使った特徴量と同じ名前を全て指定する必要があります
@@ -67,6 +68,6 @@ C++でも同じ結果になります。
 ## 今後の改善点(引き継ぎ書より)
 
 - `weight_loss_rate`(重量変化率)を実測データに追加すると、本来想定していた
-  5特徴量フルのモデルが作れる(現在は代わりに watt/elapsed_time_s/ambient_temp/
-  initial_temp/surface_temp_mean の5特徴量を使用)。
-- データ数(n=16, n=23)がまだ少ないため、追加データが増えるほど信頼性が上がる。
+  5特徴量フルのモデルが作れる。
+- データ数(現在n=16)がまだ少ないため、追加データが増えるほど信頼性が上がり、
+  複数の特徴量を安心して使えるようになる。
