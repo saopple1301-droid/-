@@ -7,15 +7,29 @@ train_model.py が書き出した係数(model_coefficients.json)を使って、
         --value watt=500 --value elapsed_time_s=60 --value ambient_temp=23.4 \\
         --value initial_temp=-13.0 --value surface_temp_mean=80.0
 
---target-temp を指定すると、まだ目標温度に届いていない場合に
-「あと何秒加熱すべきか」も合わせて表示する(train_model.pyが計算した
-elapsed_time_s 1秒あたりの温度上昇率から逆算する簡易的な見積もり):
+--preference を指定すると、「猫舌さん向け」「熱々派」など好みに応じた
+目安温度と比べて、まだ加熱が必要かどうか・あと何秒くらいかを表示する
+(train_model.pyが計算したelapsed_time_s 1秒あたりの温度上昇率から
+逆算する簡易的な見積もり):
+    python3 predict.py --category beef_croquette_tablemark \\
+        --value surface_temp_mean=48.2 --preference atsuatsu
+
+好みの目安温度を自分で指定したい場合は --target-temp を使う:
     python3 predict.py --category beef_croquette_tablemark \\
         --value surface_temp_mean=48.2 --target-temp 85
 """
 
 import argparse
 import json
+
+# 好み別の目安中心温度(℃)。あくまで目安であり、食品衛生上の
+# 安全温度を保証するものではない(加熱基準は別途、引き継ぎ書の
+# 「加熱完了の温度基準」の議論を優先すること)。
+PREFERENCE_TEMPS = {
+    "neko_jita": {"label": "猫舌さん向け(ぬるめ)", "temp": 60.0},
+    "normal": {"label": "ふつう", "temp": 75.0},
+    "atsuatsu": {"label": "熱々派", "temp": 90.0},
+}
 
 
 def parse_value_args(pairs):
@@ -55,7 +69,24 @@ def main():
         default=None,
         help="この温度(℃)に達するまであと何秒加熱すべきかも表示する",
     )
+    parser.add_argument(
+        "--preference",
+        choices=list(PREFERENCE_TEMPS.keys()),
+        default=None,
+        help=(
+            "好みに応じた目安温度で判定する: "
+            + ", ".join(f"{k}({v['label']})" for k, v in PREFERENCE_TEMPS.items())
+        ),
+    )
     args = parser.parse_args()
+
+    target_temp = args.target_temp
+    target_label = None
+    if args.preference is not None:
+        pref = PREFERENCE_TEMPS[args.preference]
+        target_label = pref["label"]
+        if target_temp is None:
+            target_temp = pref["temp"]
 
     with open(args.model_json, encoding="utf-8") as f:
         models = json.load(f)
@@ -72,22 +103,23 @@ def main():
 
     print(f"推定中心温度: {center_temp:.1f} ℃  (このモデルの学習時R^2={model['r2']:.4f})")
 
-    if args.target_temp is not None:
+    if target_temp is not None:
+        label = f"{target_label}の目安" if target_label else "目標温度"
         rate = model.get("heating_rate_c_per_s")
         if rate is None:
             print(
                 "→ 加熱速度のデータが無いため、あと何秒必要かは計算できません"
                 "(model_coefficients.json を train_model.py で作り直してください)"
             )
-        elif center_temp >= args.target_temp:
-            print(f"→ すでに目標温度({args.target_temp:.1f}℃)に達していると推定されます")
+        elif center_temp >= target_temp:
+            print(f"→ {label}({target_temp:.0f}℃)にはもう十分温まっていると推定されます")
         elif rate <= 0:
             print("→ 加熱速度が0以下のため、追加加熱時間を計算できません")
         else:
-            remaining_s = (args.target_temp - center_temp) / rate
+            remaining_s = (target_temp - center_temp) / rate
             print(
-                f"→ 目標温度({args.target_temp:.1f}℃)まで、あと約{remaining_s:.0f}秒の"
-                f"加熱が必要と推定されます(加熱速度 約{rate:.3f}℃/秒として計算。簡易的な見積もりです)"
+                f"→ {label}({target_temp:.0f}℃)まで、あと約{remaining_s:.0f}秒の"
+                f"加熱が必要と推定されます(簡易的な見積もりです)"
             )
 
 
