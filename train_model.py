@@ -152,9 +152,26 @@ def format_cpp_header(models, features):
     return "\n".join(lines)
 
 
-def format_json(models, features):
+def compute_heating_rates(rows, categories):
+    """カテゴリごとに「経過時間1秒あたり中心温度が何度上がるか」を単回帰で求める。
+
+    predict.py の「あと何秒加熱が必要か」の逆算に使う。主モデルの特徴量が
+    何であっても、この加熱速度は常に elapsed_time_s だけを使って別途計算する。
+    """
+    by_category, _ = build_dataset(rows, ["elapsed_time_s"], categories)
+    rates = {}
+    for category, data in by_category.items():
+        x, y = data["X"], data["y"]
+        if len(x) <= 1:
+            continue
+        beta, r2 = fit(x, y)
+        rates[category] = {"c_per_s": beta[1], "r2": r2}
+    return rates
+
+
+def format_json(models, features, heating_rates=None):
     """predict.py が読み込む形式で係数を書き出す。"""
-    return {
+    result = {
         category: {
             "features": features,
             "intercept": beta[0],
@@ -163,6 +180,12 @@ def format_json(models, features):
         }
         for category, (beta, r2) in models.items()
     }
+    if heating_rates:
+        for category, rate in heating_rates.items():
+            if category in result:
+                result[category]["heating_rate_c_per_s"] = rate["c_per_s"]
+                result[category]["heating_rate_r2"] = rate["r2"]
+    return result
 
 
 def main():
@@ -209,8 +232,21 @@ def main():
             f.write(header)
         print(f"C++ヘッダを書き出しました: {args.out_header}")
 
+        heating_rates = compute_heating_rates(rows, categories)
+        for category, rate in heating_rates.items():
+            if category in models:
+                print(
+                    f"[{category}] 加熱速度: 約{rate['c_per_s']:.3f}℃/秒 "
+                    f"(elapsed_time_s単回帰のR^2={rate['r2']:.4f})"
+                )
+
         with open(args.out_json, "w", encoding="utf-8") as f:
-            json.dump(format_json(models, args.features), f, ensure_ascii=False, indent=2)
+            json.dump(
+                format_json(models, args.features, heating_rates),
+                f,
+                ensure_ascii=False,
+                indent=2,
+            )
         print(f"予測用の係数ファイルを書き出しました: {args.out_json}")
         print(f"→ predict.py --category <カテゴリ名> --value 特徴量名=値 ... で予測できます")
 

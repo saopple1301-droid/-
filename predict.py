@@ -6,6 +6,12 @@ train_model.py が書き出した係数(model_coefficients.json)を使って、
     python3 predict.py --category beef_croquette_tablemark \\
         --value watt=500 --value elapsed_time_s=60 --value ambient_temp=23.4 \\
         --value initial_temp=-13.0 --value surface_temp_mean=80.0
+
+--target-temp を指定すると、まだ目標温度に届いていない場合に
+「あと何秒加熱すべきか」も合わせて表示する(train_model.pyが計算した
+elapsed_time_s 1秒あたりの温度上昇率から逆算する簡易的な見積もり):
+    python3 predict.py --category beef_croquette_tablemark \\
+        --value surface_temp_mean=48.2 --target-temp 85
 """
 
 import argparse
@@ -43,6 +49,12 @@ def main():
         required=True,
         help="name=value の形式で特徴量の値を指定(複数回指定可)",
     )
+    parser.add_argument(
+        "--target-temp",
+        type=float,
+        default=None,
+        help="この温度(℃)に達するまであと何秒加熱すべきかも表示する",
+    )
     args = parser.parse_args()
 
     with open(args.model_json, encoding="utf-8") as f:
@@ -59,6 +71,24 @@ def main():
     center_temp = predict(model, values)
 
     print(f"推定中心温度: {center_temp:.1f} ℃  (このモデルの学習時R^2={model['r2']:.4f})")
+
+    if args.target_temp is not None:
+        rate = model.get("heating_rate_c_per_s")
+        if rate is None:
+            print(
+                "→ 加熱速度のデータが無いため、あと何秒必要かは計算できません"
+                "(model_coefficients.json を train_model.py で作り直してください)"
+            )
+        elif center_temp >= args.target_temp:
+            print(f"→ すでに目標温度({args.target_temp:.1f}℃)に達していると推定されます")
+        elif rate <= 0:
+            print("→ 加熱速度が0以下のため、追加加熱時間を計算できません")
+        else:
+            remaining_s = (args.target_temp - center_temp) / rate
+            print(
+                f"→ 目標温度({args.target_temp:.1f}℃)まで、あと約{remaining_s:.0f}秒の"
+                f"加熱が必要と推定されます(加熱速度 約{rate:.3f}℃/秒として計算。簡易的な見積もりです)"
+            )
 
 
 if __name__ == "__main__":
