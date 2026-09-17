@@ -6,12 +6,12 @@
 動くようにしている。行列演算はガウスの消去法で正規方程式
 (X^T X) beta = X^T y を解く方式。
 
-既定では food_category が "beef_croquette_tablemark"(冷凍コロッケ)の行だけを使い、
-特徴量は surface_temp_mean(表面温度)のみを使う。データが16件しかなく、
+既定では food_category が "hamburger_nichirei_mini"(冷凍ハンバーグ)の行だけを使い、
+特徴量は surface_temp_mean(表面温度)のみを使う。データが8件しかなく、
 特徴量を増やすほど過学習(たまたま今回のデータに合っただけの式になる)の
 リスクが高まるため、シンプルな単回帰を既定にしている。
 ワット数・経過時間・室温・初期温度も含めたい場合は --features で明示的に指定する。
-ハンバーグなど他カテゴリも含めたい場合は --categories all を指定する。
+コロッケなど他カテゴリも含めたい場合は --categories all を指定する。
 
 使い方:
     python3 train_model.py
@@ -25,7 +25,7 @@ import json
 from collections import defaultdict
 
 DEFAULT_FEATURES = ["surface_temp_mean"]
-DEFAULT_CATEGORIES = ["beef_croquette_tablemark"]
+DEFAULT_CATEGORIES = ["hamburger_nichirei_mini"]
 TARGET = "center_temp"
 CATEGORY_COL = "food_category"
 
@@ -219,7 +219,7 @@ def main():
         "--categories",
         nargs="+",
         default=DEFAULT_CATEGORIES,
-        help="学習対象のfood_category(既定: 冷凍コロッケのみ)。全カテゴリを使う場合は --categories all を指定",
+        help="学習対象のfood_category(既定: 冷凍ハンバーグのみ)。全カテゴリを使う場合は --categories all を指定",
     )
     parser.add_argument("--out-header", default="model_coefficients_sample.h")
     parser.add_argument("--out-json", default="model_coefficients.json")

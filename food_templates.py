@@ -8,13 +8,6 @@
 """
 
 FOOD_TEMPLATES = {
-    "beef_croquette_tablemark": {
-        "display_name": "サクうまっ！牛肉コロッケ",
-        "diameter_cm": 5.0,
-        "weight_g_per_piece": 27,
-        "pieces_per_pack": 5,
-        "pack_weight_g": 135,
-    },
     "hamburger_nichirei_mini": {
         "display_name": "ニチレイ ミニハンバーグ",
         "diameter_cm": None,

@@ -3,14 +3,14 @@ train_model.py が書き出した係数(model_coefficients.json)を使って、
 新しく測った値から中心温度を推定する。
 
 使い方:
-    python3 predict.py --category beef_croquette_tablemark \\
+    python3 predict.py --category hamburger_nichirei_mini \\
         --value watt=500 --value elapsed_time_s=60 --value ambient_temp=23.4 \\
         --value initial_temp=-13.0 --value surface_temp_mean=80.0
 
 --target-temp を指定すると、まだ目標温度に届いていない場合に
 「あと何秒加熱すべきか」も合わせて表示する(train_model.pyが計算した
 elapsed_time_s 1秒あたりの温度上昇率から逆算する簡易的な見積もり):
-    python3 predict.py --category beef_croquette_tablemark \\
+    python3 predict.py --category hamburger_nichirei_mini \\
         --value surface_temp_mean=48.2 --target-temp 85
 """
 

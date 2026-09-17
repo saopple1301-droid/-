@@ -1,20 +1,4 @@
 {
-  "beef_croquette_tablemark": {
-    "features": [
-      "surface_temp_mean"
-    ],
-    "feature_units": [
-      "degC"
-    ],
-    "target_unit": "degC",
-    "intercept": 18.98033276519911,
-    "coeffs": [
-      0.9714684882661611
-    ],
-    "r2": 0.7777862558382325,
-    "heating_rate_c_per_s": 1.2668066491688539,
-    "heating_rate_r2": 0.7253245166984275
-  },
   "hamburger_nichirei_mini": {
     "features": [
       "surface_temp_mean"
