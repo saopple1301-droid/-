@@ -3,6 +3,10 @@
     "features": [
       "surface_temp_mean"
     ],
+    "feature_units": [
+      "degC"
+    ],
+    "target_unit": "degC",
     "intercept": 18.98033276519911,
     "coeffs": [
       0.9714684882661611
@@ -15,6 +19,10 @@
     "features": [
       "surface_temp_mean"
     ],
+    "feature_units": [
+      "degC"
+    ],
+    "target_unit": "degC",
     "intercept": 10.783143186301885,
     "coeffs": [
       1.0325026329191536

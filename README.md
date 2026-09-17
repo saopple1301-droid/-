@@ -54,7 +54,10 @@ python3 predict.py --category beef_croquette_tablemark --value surface_temp_mean
 `--value` は `train_model.py` で使った特徴量と同じ名前を全て指定する必要があります
 (過不足があるとエラーで教えてくれます)。ファームウェア側で直接計算したい場合は、
 `model_coefficients_sample.h` の係数を同じ式(切片 + Σ係数×特徴量)に当てはめれば
-C++でも同じ結果になります。
+C++でも同じ結果になります。ヘッダーには特徴量の並び順と単位(現状は全て℃)を
+コメントで明記しているので、ハードウェア側で値を渡す際の単位・順序の
+取り違えを防げます。`model_coefficients.json` 側にも同じ情報
+(`feature_units` / `target_unit`)を含めています。
 
 ### あと何秒加熱すべきかを表示する(--target-temp)
 

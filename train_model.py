@@ -29,6 +29,18 @@ DEFAULT_CATEGORIES = ["beef_croquette_tablemark"]
 TARGET = "center_temp"
 CATEGORY_COL = "food_category"
 
+# 引き継ぎ書(6章)向け: ハードウェア側での組み込み時に単位を誤認しないよう、
+# 各特徴量・出力(中心温度)の単位をヘッダーのコメントに明記する。
+FEATURE_UNITS = {
+    "watt": "W",
+    "elapsed_time_s": "s",
+    "ambient_temp": "degC",
+    "initial_temp": "degC",
+    "surface_temp_mean": "degC",
+    "surface_temp_min": "degC",
+}
+TARGET_UNIT = "degC"
+
 
 def load_rows(csv_path):
     with open(csv_path, newline="", encoding="utf-8") as f:
@@ -130,20 +142,29 @@ def fit(x, y):
 
 
 def format_cpp_header(models, features):
+    feature_list = "\n".join(
+        f"    //   [{i}] {name} (単位: {FEATURE_UNITS.get(name, '不明・要確認')})"
+        for i, name in enumerate(features)
+    )
     lines = [
         "// train_model.py により自動生成。手編集しないこと。",
+        "//",
+        "// center_temp = intercept + coeffs[0]*特徴量[0] + coeffs[1]*特徴量[1] + ...",
+        f"// 出力(center_temp)の単位: {TARGET_UNIT}",
+        "// 特徴量(coeffsの添字と対応、この順序で値を渡すこと):",
+        feature_list,
         "#pragma once",
         "",
         "struct ModelCoefficients {",
         "    float intercept;",
-        f"    float coeffs[{len(features)}]; // {', '.join(features)}",
+        f"    float coeffs[{len(features)}];",
         "};",
         "",
     ]
     for category, (beta, r2) in models.items():
         var_name = f"MODEL_{category.upper()}"
         intercept, *coeffs = beta
-        lines.append(f"// R^2 = {r2:.4f}")
+        lines.append(f"// food_category = \"{category}\" / R^2 = {r2:.4f}")
         lines.append(
             f"static const ModelCoefficients {var_name} = {{{intercept:.6f}f, "
             f"{{{', '.join(f'{c:.6f}f' for c in coeffs)}}}}};"
@@ -174,6 +195,8 @@ def format_json(models, features, heating_rates=None):
     result = {
         category: {
             "features": features,
+            "feature_units": [FEATURE_UNITS.get(name, "不明・要確認") for name in features],
+            "target_unit": TARGET_UNIT,
             "intercept": beta[0],
             "coeffs": beta[1:],
             "r2": r2,
