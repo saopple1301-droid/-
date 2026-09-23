@@ -11,5 +11,5 @@ struct ModelCoefficients {
     float coeffs[1];
 };
 
-// food_category = "hamburger_nichirei_mini" / R^2 = 0.8582
-static const ModelCoefficients MODEL_HAMBURGER_NICHIREI_MINI = {10.783143f, {1.032503f}};
+// food_category = "hamburger_nichirei_mini" / R^2 = 0.8805
+static const ModelCoefficients MODEL_HAMBURGER_NICHIREI_MINI = {11.472747f, {1.024638f}};
